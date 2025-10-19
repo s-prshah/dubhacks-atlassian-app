@@ -1,0 +1,14 @@
+{
+  "name": "spendify-multipanel",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "forge tunnel",
+    "deploy": "forge deploy",
+    "install": "forge install --product jira"
+  },
+  "dependencies": {
+    "@forge/api": "^3.7.0",
+    "@forge/ui": "^1.11.4"
+  }
+}

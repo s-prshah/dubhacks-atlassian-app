@@ -1,0 +1,33 @@
+app:
+  id: ari:cloud:ecosystem::app/c1fe6533-0b92-4b90-a406-d1ec1234ba42
+  runtime:
+    name: nodejs20.x
+
+modules:
+  function:
+    - key: dashboardHandler
+      handler: index.dashboardHandler
+    - key: addHandler
+      handler: index.addHandler
+    - key: reportsHandler
+      handler: index.reportsHandler
+
+  jira:issuePanel:
+    - key: spendify-dashboard
+      title: Spendify — Dashboard
+      function: dashboardHandler
+      icon: https://cdn-icons-png.flaticon.com/512/1170/1170678.png
+
+    - key: spendify-add
+      title: Spendify — Add Expense
+      function: addHandler
+      icon: https://cdn-icons-png.flaticon.com/512/1828/1828817.png
+
+    - key: spendify-reports
+      title: Spendify — Reports
+      function: reportsHandler
+      icon: https://cdn-icons-png.flaticon.com/512/833/833524.png
+
+permissions:
+  scopes:
+    - read:jira-user
