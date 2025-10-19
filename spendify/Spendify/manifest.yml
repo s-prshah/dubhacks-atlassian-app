@@ -1,0 +1,27 @@
+modules:
+  jira:dashboardGadget:
+    - key: spendify-hello-world-gadget
+      title: Spendify
+      description: A hello world dashboard gadget.
+      thumbnail: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      resource: main
+      resolver:
+        function: resolver
+      edit:
+        resource: main
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: static/hello-world/build
+permissions:
+  content:
+    styles:
+      - unsafe-inline
+app:
+  runtime:
+    name: nodejs22.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/40265d55-8d49-406f-b09d-fc7ef71fbd9d
