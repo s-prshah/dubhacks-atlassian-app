@@ -140,10 +140,6 @@ Integrate Rovo Agent prompts for automatic insights
 Implement real-time sync with Forge Storage API
 
 👩‍💻 Team Spendify
-Prisha Shah
-
-Ananya [Last Name]
-
-[Other teammates]
+Prisha Shah, Ananya Prakash, Roxy Stanescu, Arisha Gupta
 
 Built for DubHacks 2025 🏆
