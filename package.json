@@ -1,0 +1,16 @@
+{
+  "name": "spendify",
+  "version": "1.0.0",
+  "description": "College financial tracker",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@forge/api": "^3.0.0",
+    "@forge/resolver": "^1.5.0"
+  },
+  "devDependencies": {
+    "@forge/cli": "latest"
+  }
+}
