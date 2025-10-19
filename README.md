@@ -23,8 +23,3 @@ No persistent storage is used (data resets when the runtime restarts).
    ```
 
 4. Open a Jira issue in your site and use the **Apps** sidebar to open the three Spendify panels.
-
-## Notes
-- This version uses a simple in-memory store `src/store.js` (module-level singleton). Data is shared between panels while the app is running, but will not persist across restarts.
-- If you later want persistence, modify storage functions in `src/store.js` to use `@forge/api` storage or an external DB.
-- UI uses `@forge/ui` components and text-based visualizations (Forge UI doesn't support browser charting libraries).
