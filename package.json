@@ -1,14 +1,16 @@
 {
-  "name": "spendify-multipanel",
-  "version": "0.1.0",
-  "private": true,
+  "name": "spendify",
+  "version": "1.0.0",
+  "description": "College financial tracker",
+  "main": "index.js",
   "scripts": {
-    "start": "forge tunnel",
-    "deploy": "forge deploy",
-    "install": "forge install --product jira"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@forge/api": "^3.7.0",
-    "@forge/ui": "^1.11.4"
+    "@forge/api": "^3.0.0",
+    "@forge/resolver": "^1.5.0"
+  },
+  "devDependencies": {
+    "@forge/cli": "latest"
   }
 }

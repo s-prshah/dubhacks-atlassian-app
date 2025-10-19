@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spendify - College Budget Tracker</title>
+    <!-- External stylesheet - CSP compliant -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- DEBUG PANEL -->
+    <div class="debug-panel" id="debugPanel">
+        <h3>🐛 Debug Log</h3>
+        <div id="debugLog"></div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <h1>💰 Spendify</h1>
+            <p class="subtitle">Your College Budget Tracker</p>
+            
+            <div id="content" class="loading">
+                Loading your financial data... 💸
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <h2 class="section-title">➕ Quick Add Expense</h2>
+            <form class="quick-add-form" id="expenseForm">
+                <div class="form-group">
+                    <label>Category *</label>
+                    <input type="text" id="category" placeholder="e.g., Food, Rent, Coffee" required>
+                </div>
+                <div class="form-group">
+                    <label>Budget Amount *</label>
+                    <input type="number" id="budget" placeholder="400" required>
+                </div>
+                <div class="form-group">
+                    <label>Current Spent *</label>
+                    <input type="number" id="spent" placeholder="280" required>
+                </div>
+                <div class="form-group">
+                    <label>Notes (optional)</label>
+                    <textarea id="notes" rows="2" placeholder="Add any additional details..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" id="addBtn">Add Expense</button>
+            </form>
+            
+            <div class="ai-chat">
+                <h2 class="section-title">🤖 Ask Your AI Coach</h2>
+                <div class="quick-prompts">
+                    <span class="quick-prompt" data-prompt="How am I doing this month?">💰 How am I doing?</span>
+                    <span class="quick-prompt" data-prompt="Where am I spending too much?">🔍 Where to cut?</span>
+                    <span class="quick-prompt" data-prompt="Give me cheap meal ideas">🍕 Meal ideas</span>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message message-ai">
+                        Hey! 👋 I'm your financial coach. Ask me anything about your budget!
+                    </div>
+                </div>
+                <div class="chat-input-group">
+                    <input type="text" id="chatInput" placeholder="Ask me anything...">
+                    <button id="sendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Atlassian Connect API first -->
+    <script src="https://connect-cdn.atl-paas.net/all.js"></script>
+    <!-- Then load your app script -->
+    <script src="app.js"></script>
+</body>
+</html>

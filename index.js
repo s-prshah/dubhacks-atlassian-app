@@ -1,51 +1,169 @@
-import ForgeUI, { render, Fragment, Text, Form, TextField, Button, useState } from '@forge/ui';
+import api, { route } from '@forge/api';
 
-// In-memory storage
-const entries = [];
+const addJiraCommentInternal = async (issueId, commentText) => {
+  try {
+    const bodyData = {
+      body: {
+        type: "doc",
+        version: 1,
+        content: [
+          {
+            type: "paragraph",
+            content: [{
+              text: commentText,
+              type: "text"
+            }]
+          }
+        ]
+      }
+    };
+    const response = await api.asUser().requestJira(route`/rest/api/3/issue/${issueId}/comment`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bodyData)
+    });
 
-const DashboardPanel = () => {
-  const totalIncome = entries.filter(e => e.type === 'income').reduce((sum,e)=>sum+e.amount,0);
-  const totalExpenses = entries.filter(e => e.type === 'expense').reduce((sum,e)=>sum+e.amount,0);
-  const balance = totalIncome - totalExpenses;
-
-  return ForgeUI.createElement(Fragment, null,
-    ForgeUI.createElement(Text, { content: "🎓 Spendify — Dashboard" }),
-    ForgeUI.createElement(Text, { content: `Total income: $${totalIncome.toFixed(2)} | Total expenses: $${totalExpenses.toFixed(2)} | Balance: $${balance.toFixed(2)}` }),
-    ForgeUI.createElement(Text, { content: "Recent entries:" }),
-    ...entries.slice(-5).map(e => ForgeUI.createElement(Text, { content: `${e.type.toUpperCase()}: $${e.amount} — ${e.category}` }))
-  );
+    if(response.ok){
+      console.log(`Added comment '${commentText}' to issueId: ${issueId}`);
+    }
+    else{
+      console.log(`Failed to add comment '${commentText}' '${await response.text()}' to issueId: ${issueId}`);
+    }
+  }
+  catch(error){
+    console.log(error);
+  }
 };
 
-const AddPanel = () => {
-  const [_, setState] = useState(entries);
+export async function addComment(payload) {
+  const issueId = payload.issueId;
+  const comment = payload.comment;
 
-  const onSubmit = (formData) => {
-    entries.push({ type: formData.type, amount: parseFloat(formData.amount), category: formData.category });
-    setState([...entries]);
+  await addJiraCommentInternal(issueId, comment);
+} 
+
+export async function fetchComments(payload) {
+  const issueId = payload.issueId;
+  const response = await api.asUser().requestJira(route`/rest/api/3/issue/${issueId}/comment`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+  return response.json();
+}  
+
+export async function getIssues(payload, context) {
+  try {
+    const projectKey = payload.context?.jira?.jiraContexts?.[0]?.projectKey || 'SPN';
+    
+    const jql = `project=${projectKey}`;
+    const response = await api.asUser().requestJira(route`/rest/api/3/search/jql`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        jql: jql,
+        maxResults: 100,
+        fields: [
+          'summary',        // Expense name
+          'description',    // Details
+          'labels',         // Categories (Food, Rent, etc.)
+          'created',        // Date of expense
+          'customfield_xxxxx', // Amount (replace with your custom field ID)
+          'status'          // Pending/Approved/Paid
+        ]
+      })
+    });
+    
+    if (!response.ok) {
+      console.log(`Failed to fetch issues: ${await response.text()}`);
+      return { error: 'Failed to fetch issues' };
+    }
+    
+    const data = await response.json();
+    const cleanData = await extractIssueDetails(data);
+    
+    // Calculate financial insights
+    const insights = calculateFinancialInsights(cleanData);
+    
+    return { 
+      expenses: cleanData,
+      insights: insights 
+    };
+  } catch (error) {
+    console.log(`Error in getIssues: ${error}`);
+    return { error: error.message };
+  }
+}
+
+export async function extractIssueDetails(data) {
+  return data.issues.map(issue => {
+    let descriptionText = '';
+    if (issue.fields.description?.content) {
+      descriptionText = issue.fields.description.content
+        .map(node => {
+          if (node.content) {
+            return node.content
+              .map(textNode => textNode.text || '')
+              .join(' ');
+          }
+          return '';
+        })
+        .join('\n');
+    }
+
+    return {
+      key: issue.key,
+      name: issue.fields.summary,
+      description: descriptionText || 'No description',
+      category: issue.fields.labels?.[0] || 'Uncategorized',
+      allCategories: issue.fields.labels || [],
+      amount: issue.fields.customfield_xxxxx || 0, // Replace with actual field ID
+      date: issue.fields.created,
+      status: issue.fields.status?.name,
+    };
+  });
+}
+
+// NEW: Calculate spending insights
+function calculateFinancialInsights(expenses) {
+  const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  
+  // Group by category
+  const byCategory = expenses.reduce((acc, exp) => {
+    const cat = exp.category;
+    if (!acc[cat]) acc[cat] = { total: 0, count: 0 };
+    acc[cat].total += exp.amount;
+    acc[cat].count += 1;
+    return acc;
+  }, {});
+  
+  // Find biggest spending category
+  const topCategory = Object.entries(byCategory)
+    .sort((a, b) => b[1].total - a[1].total)[0];
+  
+  // Calculate this week vs last week
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  const thisWeek = expenses.filter(e => new Date(e.date) >= weekAgo);
+  const thisWeekTotal = thisWeek.reduce((sum, exp) => sum + exp.amount, 0);
+  
+  return {
+    totalSpent: total,
+    expenseCount: expenses.length,
+    averageExpense: total / expenses.length,
+    topCategory: topCategory ? {
+      name: topCategory[0],
+      amount: topCategory[1].total,
+      percentage: (topCategory[1].total / total * 100).toFixed(1)
+    } : null,
+    thisWeekSpending: thisWeekTotal,
+    categoryBreakdown: byCategory
   };
-
-  return ForgeUI.createElement(Form, { onSubmit },
-    ForgeUI.createElement(TextField, { label: "Type (income/expense)", name: "type" }),
-    ForgeUI.createElement(TextField, { label: "Amount", name: "amount" }),
-    ForgeUI.createElement(TextField, { label: "Category", name: "category" }),
-    ForgeUI.createElement(Button, { text: "Add Entry" })
-  );
-};
-
-const ReportsPanel = () => {
-  const totalIncome = entries.filter(e => e.type === 'income').reduce((sum,e)=>sum+e.amount,0);
-  const totalExpenses = entries.filter(e => e.type === 'expense').reduce((sum,e)=>sum+e.amount,0);
-  const balance = totalIncome - totalExpenses;
-
-  return ForgeUI.createElement(Fragment, null,
-    ForgeUI.createElement(Text, { content: "📊 Spendify — Reports" }),
-    ForgeUI.createElement(Text, { content: `Total income: $${totalIncome.toFixed(2)}` }),
-    ForgeUI.createElement(Text, { content: `Total expenses: $${totalExpenses.toFixed(2)}` }),
-    ForgeUI.createElement(Text, { content: `Balance: $${balance.toFixed(2)}` })
-  );
-};
-
-// Handlers
-export const dashboardHandler = () => render(DashboardPanel);
-export const addHandler = () => render(AddPanel);
-export const reportsHandler = () => render(ReportsPanel);
+}

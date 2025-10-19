@@ -1,33 +1,60 @@
-app:
-  id: ari:cloud:ecosystem::app/c1fe6533-0b92-4b90-a406-d1ec1234ba42
-  runtime:
-    name: nodejs20.x
-
 modules:
   function:
-    - key: dashboardHandler
-      handler: index.dashboardHandler
-    - key: addHandler
-      handler: index.addHandler
-    - key: reportsHandler
-      handler: index.reportsHandler
+    - key: getIssues
+      handler: index.getIssues
+    - key: resolver
+      handler: index.handler
+    - key: run
+      handler: index.run
+    # NEW: Add expense resolver
+    - key: addExpense
+      handler: index.handler
+      
+  jira:projectPage:
+    - key: financial-dashboard
+      title: 💰 My Budget
+      resource: main
+      
+  action:
+    - key: get-issues
+      name: Get issues
+      function: getIssues
+      description: Fetches issues from a project. 
+      inputs:
+        label:
+          title: Label
+          type: string
+          description: The label to filter the issues by.
+          required: false
+      actionVerb: GET
+      
+  rovo:agent:
+    - key: spendify-agent
+      name: College Money Coach
+      description: Your personal finance buddy that helps you track spending, save money, and avoid the ramen-only diet.
+      prompt: >
+        -C:\DubHacks25\spendify\prompt.txt
+      conversationStarters:
+        - How am I doing this month? 💰
+        - Help me save money this week
+        - Where am I spending too much?
+        - Give me cheap meal ideas
+        - Analyze my Jira issues
+      actions:
+        - get-issues
 
-  jira:issuePanel:
-    - key: spendify-dashboard
-      title: Spendify — Dashboard
-      function: dashboardHandler
-      icon: https://cdn-icons-png.flaticon.com/512/1170/1170678.png
-
-    - key: spendify-add
-      title: Spendify — Add Expense
-      function: addHandler
-      icon: https://cdn-icons-png.flaticon.com/512/1828/1828817.png
-
-    - key: spendify-reports
-      title: Spendify — Reports
-      function: reportsHandler
-      icon: https://cdn-icons-png.flaticon.com/512/833/833524.png
+resources:
+  - key: main
+    path: static/dashboard/
+        
+app:
+  runtime:
+    name: nodejs22.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/d04d243e-d871-4067-9ae4-d702a489fce0
 
 permissions:
   scopes:
-    - read:jira-user
+    - read:jira-work
+    - write:jira-work
